@@ -5,7 +5,6 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 # Create your models here.
-
 # class CustomUser(models.Model):
 #     id = models.AutoField(primary_key=True)
 #     userName = models.CharField(max_length=50)
@@ -38,6 +37,7 @@ class CustomUserManager(BaseUserManager):
         )
 
         user.set_password(password)
+        
         user.save(using=self._db)
         return user
 
@@ -71,6 +71,7 @@ class CustomUser(AbstractBaseUser):
     allocation_percentage = models.IntegerField(
     default=0,
     validators=[MinValueValidator(0), MaxValueValidator(100)]) 
+    confirmPass = models.CharField(max_length=100)
 
 # choices upr define thay and e variable_name aapvanu hoy field ma
     objects = CustomUserManager()
@@ -83,9 +84,6 @@ class CustomUser(AbstractBaseUser):
         if self.is_admin:
             existing_admins = CustomUser.objects.filter(is_admin=True).count()
 
-            if existing_admins > 0:
-                raise ValidationError("There can only be one admin user.")  
-            
             if self.userType == 'Employee' and self.allocation_percentage > 100:
                 raise ValidationError("Employee allocation cannot exceed 100%.")
             
@@ -117,7 +115,8 @@ class Project(models.Model):
     project_id = models.AutoField(primary_key=True)
     projectName = models.CharField(max_length=50)
     projectDescription = models.CharField(max_length=500)
-    project_assigned_on = models.DateTimeField(default=now)
+    project_assigned_on = models.DateTimeField(default=now().date)
+    # brfore doing anyother change i need to remove now().date
     projectStartDate = models.DateField(default=project_assigned_on)
     projectEndDate = models.DateField(null=True)
     toDo = models.CharField(max_length=100, choices=(('In progress', 'In progress'),('Completed', 'Completed')))
