@@ -6,9 +6,11 @@ from .models import CustomUser,Project
 from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.contrib.auth.hashers import make_password
 
     # List
 class ProjectListSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Project
         fields = '__all__'
@@ -44,30 +46,30 @@ class RegisterSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
     confirmPass = serializers.CharField(style={'input_type': 'password'}, write_only=True)
 
+    def validate(self, data):
+        password = data.get('password')
+        confirm_pass = data.pop('confirmPass', None)
+        if password and confirm_pass:
+            if password != confirm_pass:
+                raise serializers.ValidationError("Passwords do not match")
+        return data
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        if password:
+            validated_data['password'] = make_password(password)
+        return CustomUser.objects.create_user(**validated_data)
+
     class Meta:
         model = CustomUser
         fields = "__all__"
-    def create(self, validated_data):
-        confirmPass = validated_data.pop('confirmPass', None)
-        if 'password' in validated_data and confirmPass:
-            if validated_data['password'] != confirmPass:
-                raise serializers.ValidationError("Passwords do not match")
-        
-        user = CustomUser.objects.create_user(**validated_data)
-        return user
-
-
-    def create(self, validated_data):
-        return super().create(validated_data)
-
-        
+    
 class LoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=255)
+    password = serializers.CharField(write_only=True)
     class Meta:
         model=CustomUser
         fields=("email","password")
-        
-
 
 class ChangePasswordSerializer(serializers.HyperlinkedModelSerializer):
     id=serializers.ReadOnlyField

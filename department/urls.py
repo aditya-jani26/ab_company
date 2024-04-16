@@ -1,10 +1,8 @@
 
 from django.urls import path,include
-from django import views
 from department.views import *
 from rest_framework_simplejwt.views import(
     TokenObtainPairView,
-    TokenRefreshView,
 )
 
 urlpatterns = [
@@ -19,7 +17,7 @@ urlpatterns = [
 
     path('login/', LoginView.as_view(), name='login'),
 
-    path('ProjectList/', ProjectListView.as_view(), name='ProjectList'),
+    path('ProjectList/', ProjectList.as_view(), name='ProjectList-list'),
     path('projectCreateView/', projectCreateView.as_view(), name='projectCreateView'),
     path('ProjectCRUDView/', ProjectCRUDView.as_view(), name='ProjectCRUDView'),
     path('ProjectAllocationView/', ProjectAllocationView.as_view(), name='ProjectAllocationView'),
@@ -27,6 +25,6 @@ urlpatterns = [
     path('EmployeeAllocation/', EmployeeAllocationListView.as_view(), name='EmployeeAllocation'),
     path('TotalUserList/',TotalUserList.as_view(), name='TotalUserList'),
 
-     path('LogoutView/',LogoutView.as_view(), name='LogoutView'),
+    path('LogoutView/',LogoutView.as_view(), name='LogoutView'),
 
 ]

@@ -2,21 +2,6 @@ from django.db import models
 from django.forms import ValidationError
 from django.utils.timezone import now
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
-from django.core.validators import MinValueValidator, MaxValueValidator
-
-# Create your models here.
-# class CustomUser(models.Model):
-#     id = models.AutoField(primary_key=True)
-#     userName = models.CharField(max_length=50)
-#     userEmail = models.EmailField()
-#     userPassword = models.CharField(max_length=50)
-#     userType = models.CharField(max_length=100, choices=(('Admin', 'Admin'),('Project-Manager', 'Project-Manager'),('Team-Leader', 'Team-Leader'),('Employee', 'Employee')))
-#     is_active = models.BooleanField(default=True, null=True, blank=True)
-
-#     def save(self, *args, **kwargs):
-#         if self.userType != 'Employee':
-#             self.is_active = None
-#         super().save(*args, **kwargs)   
 
 
 
@@ -37,7 +22,6 @@ class CustomUserManager(BaseUserManager):
         )
 
         user.set_password(password)
-        
         user.save(using=self._db)
         return user
 
@@ -57,7 +41,6 @@ class CustomUserManager(BaseUserManager):
         return user
 
 
-
 class CustomUser(AbstractBaseUser):
     email = models.EmailField(
         verbose_name="Email",
@@ -65,31 +48,22 @@ class CustomUser(AbstractBaseUser):
         unique=True,
     )
     name = models.CharField(max_length=50)
-    userType = models.CharField(max_length=100, choices=(('Admin', 'Admin'),('Project-Manager', 'Project-Manager'),('Team-Leader', 'Team-Leader'),('Employee', 'Employee'))) 
+    typeChoices = [
+        ('Admin', 'Admin'),
+        ('Project_Manager', 'Project_Manager'),
+        ('Team_Leader', 'Team_Leader'),
+        ('Employee', 'Employee'),
+    ]
+    userType = models.CharField(max_length=100, choices=typeChoices) 
+    allocation_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=False)
-    allocation_percentage = models.IntegerField(
-    default=0,
-    validators=[MinValueValidator(0), MaxValueValidator(100)]) 
-    confirmPass = models.CharField(max_length=100)
+    is_admin = models.BooleanField(default=False)   
 
-# choices upr define thay and e variable_name aapvanu hoy field ma
     objects = CustomUserManager()
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["name", "userType"]
 
-    def save(self, *args, **kwargs):
-
-        if self.is_admin:
-            existing_admins = CustomUser.objects.filter(is_admin=True).count()
-
-            if self.userType == 'Employee' and self.allocation_percentage > 100:
-                raise ValidationError("Employee allocation cannot exceed 100%.")
-            
-        super().save(*args, **kwargs)
-        # ----------------------------------------------------------------
-# this is my model.py file and i want you to change my model variable name and there should be optimal define that variable_name  and send that in field name
     def __str__(self):
         return self.email
 
@@ -108,7 +82,6 @@ class CustomUser(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
-    
 
 class Project(models.Model):
     projectCreator = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
